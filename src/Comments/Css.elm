@@ -1,7 +1,7 @@
-module Comments.Css exposing (Config, defaultConfig, exampleStyleSheet)
+module Comments.Css exposing (Config, defaultConfig, exampleStyleSheet, styleCommentEditor)
 
 {-|
-@docs Config, defaultConfig, exampleStyleSheet
+@docs Config, defaultConfig, exampleStyleSheet, styleCommentEditor
 -}
 
 import Css exposing (..)
@@ -81,6 +81,8 @@ defaultStyleConfig =
     }
 
 
+{-|
+-}
 styleCommentEditor : StyleConfig -> Config cssClasses -> List Snippet
 styleCommentEditor styleConfig classConfig =
     [ class classConfig.editor

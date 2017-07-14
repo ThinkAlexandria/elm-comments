@@ -194,7 +194,7 @@ type InternalMsg key
 
 
 -}
-update : (comparable -> Int -> String) -> InternalMsg comparable -> State comparable -> ( State comparable, Cmd (Msg comparable) )
+update : (comparable -> Int -> Maybe String) -> InternalMsg comparable -> State comparable -> ( State comparable, Cmd (Msg comparable) )
 update createDraftFromExisting msg state =
     case msg of
         DeleteCommentDraft selector ->
@@ -221,12 +221,13 @@ update createDraftFromExisting msg state =
                             state ! []
 
                         Nothing ->
-                            let
-                                commentToEdit =
-                                    createDraftFromExisting key commentIndex
-                            in
-                                insertEditDraft key commentIndex commentToEdit state
-                                    ! []
+                            case createDraftFromExisting key commentIndex of
+                                Just commentToEdit ->
+                                    insertEditDraft key commentIndex commentToEdit state
+                                        ! []
+
+                                Nothing ->
+                                    state ! []
 
                 New key ->
                     if Dict.member key state.newCommentDrafts then

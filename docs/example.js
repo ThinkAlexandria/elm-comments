@@ -15304,24 +15304,31 @@ var _ThinkAlexandria$elm_comments$Comments$update = F3(
 			case 'CreateCommentDraft':
 				var _p2 = _p0._0;
 				if (_p2.ctor === 'Existing') {
-					var _p5 = _p2._0;
-					var _p4 = _p2._1;
-					var _p3 = A3(_ThinkAlexandria$elm_comments$Comments$getEditDraft, _p5, _p4, state);
+					var _p6 = _p2._0;
+					var _p5 = _p2._1;
+					var _p3 = A3(_ThinkAlexandria$elm_comments$Comments$getEditDraft, _p6, _p5, state);
 					if (_p3.ctor === 'Just') {
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							state,
 							{ctor: '[]'});
 					} else {
-						var commentToEdit = A2(createDraftFromExisting, _p5, _p4);
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							A4(_ThinkAlexandria$elm_comments$Comments$insertEditDraft, _p5, _p4, commentToEdit, state),
-							{ctor: '[]'});
+						var _p4 = A2(createDraftFromExisting, _p6, _p5);
+						if (_p4.ctor === 'Just') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								A4(_ThinkAlexandria$elm_comments$Comments$insertEditDraft, _p6, _p5, _p4._0, state),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								state,
+								{ctor: '[]'});
+						}
 					}
 				} else {
-					var _p6 = _p2._0;
-					return A2(_elm_lang$core$Dict$member, _p6, state.newCommentDrafts) ? A2(
+					var _p7 = _p2._0;
+					return A2(_elm_lang$core$Dict$member, _p7, state.newCommentDrafts) ? A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						state,
 						{ctor: '[]'}) : A2(
@@ -15329,14 +15336,14 @@ var _ThinkAlexandria$elm_comments$Comments$update = F3(
 						_elm_lang$core$Native_Utils.update(
 							state,
 							{
-								newCommentDrafts: A3(_elm_lang$core$Dict$insert, _p6, _ThinkAlexandria$elm_comments$Comments$defaultCommentDraft, state.newCommentDrafts)
+								newCommentDrafts: A3(_elm_lang$core$Dict$insert, _p7, _ThinkAlexandria$elm_comments$Comments$defaultCommentDraft, state.newCommentDrafts)
 							}),
 						{ctor: '[]'});
 				}
 			case 'UpdateCommentDraft':
-				var _p8 = _p0._1;
-				var _p7 = _p0._0;
-				if (_p7.ctor === 'Existing') {
+				var _p9 = _p0._1;
+				var _p8 = _p0._0;
+				if (_p8.ctor === 'Existing') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
@@ -15344,13 +15351,13 @@ var _ThinkAlexandria$elm_comments$Comments$update = F3(
 							{
 								editCommentDrafts: A3(
 									_elm_lang$core$Dict$update,
-									_p7._0,
+									_p8._0,
 									_elm_lang$core$Maybe$map(
 										A2(
 											_elm_lang$core$Dict$update,
-											_p7._1,
+											_p8._1,
 											_elm_lang$core$Maybe$map(
-												_ThinkAlexandria$elm_comments$Comments$setDraftMarkdown(_p8)))),
+												_ThinkAlexandria$elm_comments$Comments$setDraftMarkdown(_p9)))),
 									state.editCommentDrafts)
 							}),
 						{ctor: '[]'});
@@ -15362,17 +15369,17 @@ var _ThinkAlexandria$elm_comments$Comments$update = F3(
 							{
 								newCommentDrafts: A3(
 									_elm_lang$core$Dict$update,
-									_p7._0,
+									_p8._0,
 									_elm_lang$core$Maybe$map(
-										_ThinkAlexandria$elm_comments$Comments$setDraftMarkdown(_p8)),
+										_ThinkAlexandria$elm_comments$Comments$setDraftMarkdown(_p9)),
 									state.newCommentDrafts)
 							}),
 						{ctor: '[]'});
 				}
 			default:
-				var _p10 = _p0._1;
-				var _p9 = _p0._0;
-				if (_p9.ctor === 'Existing') {
+				var _p11 = _p0._1;
+				var _p10 = _p0._0;
+				if (_p10.ctor === 'Existing') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
@@ -15380,13 +15387,13 @@ var _ThinkAlexandria$elm_comments$Comments$update = F3(
 							{
 								editCommentDrafts: A3(
 									_elm_lang$core$Dict$update,
-									_p9._0,
+									_p10._0,
 									_elm_lang$core$Maybe$map(
 										A2(
 											_elm_lang$core$Dict$update,
-											_p9._1,
+											_p10._1,
 											_elm_lang$core$Maybe$map(
-												_ThinkAlexandria$elm_comments$Comments$setDraftPreviewFlag(_p10)))),
+												_ThinkAlexandria$elm_comments$Comments$setDraftPreviewFlag(_p11)))),
 									state.editCommentDrafts)
 							}),
 						{ctor: '[]'});
@@ -15398,9 +15405,9 @@ var _ThinkAlexandria$elm_comments$Comments$update = F3(
 							{
 								newCommentDrafts: A3(
 									_elm_lang$core$Dict$update,
-									_p9._0,
+									_p10._0,
 									_elm_lang$core$Maybe$map(
-										_ThinkAlexandria$elm_comments$Comments$setDraftPreviewFlag(_p10)),
+										_ThinkAlexandria$elm_comments$Comments$setDraftPreviewFlag(_p11)),
 									state.newCommentDrafts)
 							}),
 						{ctor: '[]'});
@@ -15740,8 +15747,8 @@ var _ThinkAlexandria$elm_comments$Comments$UpdateCommentDraft = F2(
 		return {ctor: 'UpdateCommentDraft', _0: a, _1: b};
 	});
 var _ThinkAlexandria$elm_comments$Comments$commentEditor = F4(
-	function (config, _p11, selector, draft) {
-		var _p12 = _p11;
+	function (config, _p12, selector, draft) {
+		var _p13 = _p12;
 		var editorBody = draft.showMarkdownPreview ? A3(
 			_evancz$elm_markdown$Markdown$toHtmlWith,
 			{
@@ -15779,9 +15786,9 @@ var _ThinkAlexandria$elm_comments$Comments$commentEditor = F4(
 								_1: {
 									ctor: '::',
 									_0: _elm_lang$html$Html_Events$onInput(
-										function (_p13) {
+										function (_p14) {
 											return _ThinkAlexandria$elm_comments$Comments$Internal(
-												A2(_ThinkAlexandria$elm_comments$Comments$UpdateCommentDraft, selector, _p13));
+												A2(_ThinkAlexandria$elm_comments$Comments$UpdateCommentDraft, selector, _p14));
 										}),
 									_1: {
 										ctor: '::',
@@ -15972,14 +15979,14 @@ var _ThinkAlexandria$elm_comments$Comments$commentEditor = F4(
 																_elm_lang$html$Html_Events$onWithOptions,
 																'click',
 																A2(_elm_lang$html$Html_Events$Options, true, true),
-																_p12._0._1),
+																_p13._0._1),
 															_1: {ctor: '[]'}
 														}
 													}
 												},
 												{
 													ctor: '::',
-													_0: _elm_lang$html$Html$text(_p12._0._0),
+													_0: _elm_lang$html$Html$text(_p13._0._0),
 													_1: {ctor: '[]'}
 												}),
 											_1: {
@@ -15998,14 +16005,14 @@ var _ThinkAlexandria$elm_comments$Comments$commentEditor = F4(
 																	_elm_lang$html$Html_Events$onWithOptions,
 																	'click',
 																	A2(_elm_lang$html$Html_Events$Options, true, true),
-																	_p12._1._1),
+																	_p13._1._1),
 																_1: {ctor: '[]'}
 															}
 														}
 													},
 													{
 														ctor: '::',
-														_0: _elm_lang$html$Html$text(_p12._1._0),
+														_0: _elm_lang$html$Html$text(_p13._1._0),
 														_1: {ctor: '[]'}
 													}),
 												_1: {ctor: '[]'}
@@ -16069,10 +16076,10 @@ var _ThinkAlexandria$elm_comments$Comments$updateCommentEditor = F3(
 	});
 var _ThinkAlexandria$elm_comments$Comments$viewComment = F6(
 	function (toMsg, config, state, key, commentIndex, comment) {
-		var _p14 = function (m) {
-			var _p15 = m;
-			if (_p15.ctor === 'Just') {
-				return {ctor: '_Tuple2', _0: true, _1: _p15._0};
+		var _p15 = function (m) {
+			var _p16 = m;
+			if (_p16.ctor === 'Just') {
+				return {ctor: '_Tuple2', _0: true, _1: _p16._0};
 			} else {
 				return {ctor: '_Tuple2', _0: false, _1: _ThinkAlexandria$elm_comments$Comments$defaultCommentDraft};
 			}
@@ -16081,8 +16088,8 @@ var _ThinkAlexandria$elm_comments$Comments$viewComment = F6(
 				_elm_lang$core$Maybe$andThen,
 				_elm_lang$core$Dict$get(commentIndex),
 				A2(_elm_lang$core$Dict$get, key, state.editCommentDrafts)));
-		var editing = _p14._0;
-		var draftComment = _p14._1;
+		var editing = _p15._0;
+		var draftComment = _p15._1;
 		var selector = A2(_ThinkAlexandria$elm_comments$Comments$Existing, key, commentIndex);
 		return editing ? A2(
 			_elm_lang$html$Html$map,
@@ -16219,14 +16226,14 @@ var _ThinkAlexandria$elm_comments$Comments$viewComment = F6(
 var _ThinkAlexandria$elm_comments$Comments$viewCommentList = F5(
 	function (toMsg, config, state, key, comments) {
 		var tailEditor = function () {
-			var _p16 = A2(_elm_lang$core$Dict$get, key, state.newCommentDrafts);
-			if (_p16.ctor === 'Just') {
+			var _p17 = A2(_elm_lang$core$Dict$get, key, state.newCommentDrafts);
+			if (_p17.ctor === 'Just') {
 				return {
 					ctor: '::',
 					_0: A2(
 						_elm_lang$html$Html$map,
 						toMsg,
-						A3(_ThinkAlexandria$elm_comments$Comments$newCommentEditor, config, key, _p16._0)),
+						A3(_ThinkAlexandria$elm_comments$Comments$newCommentEditor, config, key, _p17._0)),
 					_1: {ctor: '[]'}
 				};
 			} else {
@@ -16277,7 +16284,7 @@ var _ThinkAlexandria$elm_comments$Example$subscriptions = function (model) {
 };
 var _ThinkAlexandria$elm_comments$Example$draftFromExistingComment = F3(
 	function (feed, postIndex, commentIndex) {
-		var comment = A2(
+		return A2(
 			_elm_lang$core$Maybe$andThen,
 			function (y) {
 				return _elm_lang$core$Maybe$Just(y.markdown);
@@ -16288,7 +16295,6 @@ var _ThinkAlexandria$elm_comments$Example$draftFromExistingComment = F3(
 					return A2(_elm_lang$core$Array$get, commentIndex, x.comments);
 				},
 				A2(_elm_lang$core$Array$get, postIndex, feed)));
-		return A2(_elm_lang$core$Maybe$withDefault, '', comment);
 	});
 var _ThinkAlexandria$elm_comments$Example$examplePost = {
 	title: 'Example Post',

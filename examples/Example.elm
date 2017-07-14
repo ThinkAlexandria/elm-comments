@@ -89,16 +89,11 @@ type Msg
     | NewPost
 
 
-draftFromExistingComment : Array Post -> Int -> Int -> String
+draftFromExistingComment : Array Post -> Int -> Int -> Maybe String
 draftFromExistingComment feed postIndex commentIndex =
-    let
-        comment : Maybe String
-        comment =
-            Array.get postIndex feed
-                |> Maybe.andThen (\x -> Array.get commentIndex x.comments)
-                |> Maybe.andThen (\y -> Just y.markdown)
-    in
-        Maybe.withDefault "" comment
+    Array.get postIndex feed
+        |> Maybe.andThen (\x -> Array.get commentIndex x.comments)
+        |> Maybe.andThen (\y -> Just y.markdown)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
