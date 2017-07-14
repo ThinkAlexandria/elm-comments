@@ -1,0 +1,21 @@
+$body-font: Helvetica, Arial, sans-serif;
+$tooltip-text-color: #fff;
+$tooltip-background-color: rgba(0,0,0, 0.8);
+$tooltip-duration: 0.1s;
+$tooltip-delay: 0.4s;
+$tooltip-max-width: 250px;
+@mixin retina-media-query {
+  @media
+    only screen and (-webkit-min-device-pixel-ratio: 2),
+    only screen and (min--moz-device-pixel-ratio: 2),
+    only screen and (-moz-min-device-pixel-ratio: 2),
+    only screen and (-o-min-device-pixel-ratio: 2/1),
+    only screen and (min-device-pixel-ratio: 2),
+    only screen and (min-resolution: 192dpi),
+    only screen and (min-resolution: 2dppx) {
+    @content;
+  }
+}
+
+@import "../elm-stuff/packages/ThinkAlexandria/elm-primer-tooltips/1.0.0/lib/tooltips.scss";
+

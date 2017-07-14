@@ -2,6 +2,13 @@
 elm-stuff
 # elm-repl generated files
 repl-temp-*
+# tool generated files
+.sass-cache/
+.elm-static-html/
+obj/
 
 # editor files
 *.swp
+
+# third party libraries
+third/
