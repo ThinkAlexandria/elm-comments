@@ -1,0 +1,18 @@
+{
+    "comment-editor-discard-draft": "Discard Draft",
+    "comment-editor-comment": "Comment",
+    "comment-editor-cancel": "Cancel",
+    "comment-editor-update-comment": "Update Comment",
+    "comment-editor-tooltip-text-size": "text size",
+    "comment-editor-tooltip-bold-text": "bold text",
+    "comment-editor-tooltip-italic-text": "italic text",
+    "comment-editor-tooltip-code": "code",
+    "comment-editor-tooltip-quote": "quote",
+    "comment-editor-tooltip-bulleted-list": "bulleted list",
+    "comment-editor-tooltip-numbered-list": "numbered list",
+    "comment-editor-tooltip-task-list": "task list",
+    "comment-editor-placeholder": "Leave a comment",
+    "comment-editor-tab-write": "Write",
+    "comment-editor-tab-preview": "Preview",
+    "comment-editor-markdown-supported": " Markdown Supported"
+}

@@ -6,5 +6,6 @@ docs:
 	elm-static-html -f examples/IndexPage.elm -o docs/index.html
 	sass --sourcemap=none examples/example.scss docs/example.css
 	cp examples/highlight.min.css docs/
+	cp src/i18n/en.json docs/
 
 

@@ -1,7 +1,7 @@
-module Comments.Css exposing (Config, defaultConfig, exampleStyleSheet, styleCommentEditor)
+module Comments.Css exposing (CssConfig, defaultCssConfig, exampleStyleSheet, styleCommentEditor)
 
 {-|
-@docs Config, defaultConfig, exampleStyleSheet, styleCommentEditor
+@docs CssConfig, defaultCssConfig, exampleStyleSheet, styleCommentEditor
 -}
 
 import Css exposing (..)
@@ -27,7 +27,7 @@ type CssClasses
 
 {-|
 -}
-type alias Config cssClasses =
+type alias CssConfig cssClasses =
     { editor : cssClasses
     , header : cssClasses
     , horizontalTabNav : cssClasses
@@ -45,8 +45,8 @@ type alias Config cssClasses =
 
 {-|
 -}
-defaultConfig : Config CssClasses
-defaultConfig =
+defaultCssConfig : CssConfig CssClasses
+defaultCssConfig =
     { editor = CommentEditor
     , header = CommentEditorHeader
     , horizontalTabNav = HorizontalTabNav
@@ -83,16 +83,16 @@ defaultStyleConfig =
 
 {-|
 -}
-styleCommentEditor : StyleConfig -> Config cssClasses -> List Snippet
-styleCommentEditor styleConfig classConfig =
-    [ class classConfig.editor
+styleCommentEditor : StyleConfig -> CssConfig cssClasses -> List Snippet
+styleCommentEditor styleConfig cssConfig =
+    [ class cssConfig.editor
         [ border3 (px styleConfig.commonBorderThickness) solid styleConfig.borderColor
         , backgroundColor styleConfig.editorBackground
         , margin (px 0)
         , borderRadius (px styleConfig.commonRadius)
           -- box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(58,171,240,0.6);
         ]
-    , class classConfig.button
+    , class cssConfig.button
         [ marginLeft (px 5)
         , backgroundColor styleConfig.editorBackground
         , border3 (px styleConfig.commonBorderThickness) solid styleConfig.borderColor
@@ -103,30 +103,30 @@ styleCommentEditor styleConfig classConfig =
             [ backgroundColor styleConfig.buttonHoverColor
             ]
         ]
-    , class classConfig.header
+    , class cssConfig.header
         [ padding3 (px 6) (px 10) (px 0)
         , displayFlex
         , justifyContent spaceBetween
         , alignItems center
         ]
-    , class classConfig.horizontalTabSelected
+    , class cssConfig.horizontalTabSelected
         [ borderColor styleConfig.borderColor
         , backgroundColor styleConfig.editorBackground
         , borderBottom (px 0)
         ]
-    , class classConfig.toolbarButton
+    , class cssConfig.toolbarButton
         [ margin (px 5)
         , padding (px 0)
         , border (px 0)
         , backgroundColor (hex "#fff")
         ]
-    , class classConfig.body
+    , class cssConfig.body
         [ margin (px 10)
         , marginTop (px 0)
         , borderTop3 (px styleConfig.commonBorderThickness) solid styleConfig.borderColor
         , borderBottom3 (px styleConfig.commonBorderThickness) solid styleConfig.borderColor
         ]
-    , class classConfig.markdownBody
+    , class cssConfig.markdownBody
         [ borderTop3 (px styleConfig.commonBorderThickness) solid styleConfig.borderColor
           {- Match the margin of CommentInput text but reduce the padding so
              the rendered text looks a little bit bigger than the draft inside
@@ -147,7 +147,7 @@ styleCommentEditor styleConfig classConfig =
                 ]
             ]
         ]
-    , class classConfig.textInput
+    , class cssConfig.textInput
         [ width (pct 100)
         , padding (px 10)
         , minHeight (px 100)
@@ -157,7 +157,7 @@ styleCommentEditor styleConfig classConfig =
         , boxSizing borderBox
         ]
       {- Pushes the helptext to left and action buttons to the right -}
-    , class classConfig.footer
+    , class cssConfig.footer
         [ displayFlex
         , justifyContent spaceBetween
         , margin (px 10)
@@ -165,7 +165,7 @@ styleCommentEditor styleConfig classConfig =
       {- modify the alignment of the Markdown icon -}
     , class "octiconMarkdown"
         [ verticalAlign middle ]
-    , class classConfig.spacer
+    , class cssConfig.spacer
         [ height (px 30)
         , marginLeft (px 30)
         , borderLeft3 (px 3) solid styleConfig.borderColor
@@ -188,20 +188,20 @@ shadowLevelTwo =
 -}
 
 
-styleHorizontalTabNav : StyleConfig -> Config cssClasses -> List Snippet
-styleHorizontalTabNav styleConfig classConfig =
+styleHorizontalTabNav : StyleConfig -> CssConfig cssClasses -> List Snippet
+styleHorizontalTabNav styleConfig cssConfig =
     {- The border bottom of this element should overlap the border bottom of
        the CommentEditorHeader so that the background of the HorizontalTabSelected
        tab appears to merge with the comment area background below
     -}
-    [ class classConfig.horizontalTabNav
+    [ class cssConfig.horizontalTabNav
         [ marginBottom (px (2 * -styleConfig.commonBorderThickness))
         , borderColor inherit
         ]
       {- Each different component will need to implement a selected class that
          matches the background color of the containing widget
       -}
-    , class classConfig.horizontalTab
+    , class cssConfig.horizontalTab
         [ border3 (px styleConfig.commonBorderThickness) solid transparent
         , backgroundColor transparent
         , padding2 (px 8) (px 12)
@@ -222,6 +222,6 @@ exampleStyleSheet : Css.Stylesheet
 exampleStyleSheet =
     stylesheet <|
         List.concat
-            [ styleHorizontalTabNav defaultStyleConfig defaultConfig
-            , styleCommentEditor defaultStyleConfig defaultConfig
+            [ styleHorizontalTabNav defaultStyleConfig defaultCssConfig
+            , styleCommentEditor defaultStyleConfig defaultCssConfig
             ]

@@ -1,5 +1,7 @@
 module Example exposing (main)
 
+import Date exposing (Date)
+import Http
 import Html exposing (Html, div, text, ul, li, button, h3, node, p, hr)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
@@ -9,6 +11,7 @@ import Array exposing (Array)
 -- third party
 
 import Css
+import I18Next exposing (Translations)
 
 
 -- ours
@@ -31,8 +34,9 @@ init : ( Model, Cmd Msg )
 init =
     { feed = Array.fromList [ examplePost ]
     , commentState = Comments.defaultState
+    , translations = I18Next.initialTranslations
     }
-        ! []
+        ! [ I18Next.fetchTranslations TranslationsLoaded "en.json" ]
 
 
 
@@ -42,6 +46,7 @@ init =
 type alias Model =
     { feed : Array Post
     , commentState : Comments.State Int
+    , translations : Translations
     }
 
 
@@ -61,7 +66,9 @@ examplePost =
             [ { markdown = "# This is an example comment"
               , metadata =
                     { createdBy = "Steve"
-                    , createdTimestamp = "Yesterday"
+                    , createdTimestamp = Date.fromTime 1500000000
+                    , modifiedBy = "Steve"
+                    , modifiedTimestamp = Date.fromTime 1500000000
                     , isDeleted = False
                     }
               }
@@ -73,7 +80,9 @@ type alias Comment =
     { markdown : String
     , metadata :
         { createdBy : String
-        , createdTimestamp : String
+        , createdTimestamp : Date
+        , modifiedBy : String
+        , modifiedTimestamp : Date
         , isDeleted : Bool
         }
     }
@@ -87,6 +96,7 @@ type Msg
     = NoOp
     | CommentsMsg (Comments.Msg Int)
     | NewPost
+    | TranslationsLoaded (Result Http.Error Translations)
 
 
 draftFromExistingComment : Array Post -> Int -> Int -> Maybe String
@@ -99,6 +109,12 @@ draftFromExistingComment feed postIndex commentIndex =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        TranslationsLoaded (Ok translations) ->
+            { model | translations = translations } ! []
+
+        TranslationsLoaded (Err messag) ->
+            model ! []
+
         CommentsMsg commentsMsg ->
             case commentsMsg of
                 Internal internalMsg ->
@@ -126,7 +142,9 @@ update msg model =
                                                 { markdown = Maybe.withDefault "" newComment
                                                 , metadata =
                                                     { createdBy = "Steve"
-                                                    , createdTimestamp = "Now"
+                                                    , createdTimestamp = Date.fromTime 1500000000
+                                                    , modifiedBy = "Steve"
+                                                    , modifiedTimestamp = Date.fromTime 1500000000
                                                     , isDeleted = False
                                                     }
                                                 }
@@ -236,12 +254,12 @@ view model =
             , button [ onClick NewPost ] [ text "New Post" ]
             ]
         , hr [] []
-        , ul [] <| Array.toList <| Array.indexedMap (viewPost model.commentState) model.feed
+        , ul [] <| Array.toList <| Array.indexedMap (viewPost model) model.feed
         ]
 
 
-viewPost : Comments.State Int -> Int -> Post -> Html Msg
-viewPost commentState postIndex post =
+viewPost : Model -> Int -> Post -> Html Msg
+viewPost { translations, commentState} postIndex post =
     li
         [ style
             [ ( "max-width", "700px" )
@@ -253,8 +271,10 @@ viewPost commentState postIndex post =
         ]
     <|
         Comments.viewCommentList
-            CommentsMsg
-            Comments.Css.defaultConfig
+            { cssConfig = Comments.Css.defaultCssConfig
+            , translations = translations
+            , toMsg = CommentsMsg
+            }
             commentState
             postIndex
             (Array.toList post.comments)

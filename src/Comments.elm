@@ -7,12 +7,13 @@ module Comments exposing (Msg(..), State, defaultState, update, viewComment, vie
 @docs getEditDraft, getNewDraft, removeEditDraft, removeNewDraft
 -}
 
+import Date exposing (Date)
+import Dict exposing (Dict)
 import Html exposing (Html, div, text, h2, p, nav, button, span, form, ul, li, label, input, a, textarea)
 import Html.Attributes exposing (href, type_, style, for, checked, placeholder, tabindex)
 import Html.Events exposing (onInput, onClick, onFocus, onWithOptions, Options)
 import Html.Keyed
 import Json.Decode
-import Dict exposing (Dict)
 
 
 -- third party
@@ -21,15 +22,20 @@ import Markdown
 import Octicons
 import Css.Primer.Tooltips.Selectors as Tooltips
 import Css.Primer.Tooltips.Selectors exposing (CssClasses(..))
-
+import I18Next exposing (Translations, t)
 
 -- ours
 
-import Comments.Css exposing (Config)
+import Comments.Css exposing (CssConfig)
 
 
 octiconsDefaultOptions =
     Octicons.defaultOptions
+
+-- rename the translation functions from I18Next
+translate : Translations -> String -> String
+translate = t
+
 
 
 
@@ -298,6 +304,11 @@ update createDraftFromExisting msg state =
 
 -- VIEW
 
+type alias Config cssClasses msg key=
+    { cssConfig : CssConfig cssClasses
+    , translations : Translations
+    , toMsg : Msg key -> msg
+    }
 
 type alias Comment r m =
     { r
@@ -305,7 +316,9 @@ type alias Comment r m =
         , metadata :
             { m
                 | createdBy : String
-                , createdTimestamp : String
+                , createdTimestamp : Date
+                , modifiedBy : String
+                , modifiedTimestamp : Date
                 , isDeleted : Bool
             }
     }
@@ -313,16 +326,16 @@ type alias Comment r m =
 
 {-|
 -}
-viewCommentList : (Msg comparable -> msg) -> Config cssClasses -> State comparable -> comparable -> List (Comment r m) -> List (Html msg)
-viewCommentList toMsg config state key comments =
+viewCommentList : Config cssClasses msg comparable -> State comparable -> comparable -> List (Comment r m) -> List (Html msg)
+viewCommentList config state key comments =
     let
         tailEditor =
             case Dict.get key state.newCommentDrafts of
                 Just draft ->
-                    [ Html.map toMsg <| newCommentEditor config key draft ]
+                    [ Html.map config.toMsg <| newCommentEditor config key draft ]
 
                 Nothing ->
-                    [ Html.map toMsg <| newCommentEditor config key defaultCommentDraft ]
+                    [ Html.map config.toMsg <| newCommentEditor config key defaultCommentDraft ]
     in
         (List.concat <|
             (List.indexedMap
@@ -330,8 +343,8 @@ viewCommentList toMsg config state key comments =
                     if value.metadata.isDeleted then
                         [ text "" ]
                     else
-                        [ viewComment toMsg config state key index value
-                        , div [ class config.spacer ] []
+                        [ viewComment config state key index value
+                        , div [ class config.cssConfig.spacer ] []
                         ]
                 )
                 comments
@@ -342,8 +355,8 @@ viewCommentList toMsg config state key comments =
 
 {-|
 -}
-viewComment : (Msg comparable -> msg) -> Config cssClasses -> State comparable -> comparable -> Int -> Comment r m -> Html msg
-viewComment toMsg config state key commentIndex comment =
+viewComment : Config cssClasses msg comparable -> State comparable -> comparable -> Int -> Comment r m -> Html msg
+viewComment config state key commentIndex comment =
     let
         selector =
             Existing key commentIndex
@@ -363,17 +376,17 @@ viewComment toMsg config state key commentIndex comment =
                    )
     in
         if editing then
-            Html.map toMsg <| updateCommentEditor config key commentIndex draftComment
+            Html.map config.toMsg <| updateCommentEditor config key commentIndex draftComment
         else
-            Html.map toMsg <|
-                form [ class config.editor ]
-                    [ div [ class config.header ]
+            Html.map config.toMsg <|
+                form [ class config.cssConfig.editor ]
+                    [ div [ class config.cssConfig.header ]
                         -- the top toolbar element
                         [ span []
                             [ a []
                                 [ text comment.metadata.createdBy ]
                             , text " commented "
-                            , text comment.metadata.createdTimestamp
+                            , text <| toString comment.metadata.createdTimestamp
                             ]
                         , span []
                             [ button
@@ -381,7 +394,7 @@ viewComment toMsg config state key commentIndex comment =
                                     "click"
                                     (Options True True)
                                     (Json.Decode.succeed <| Internal <| CreateCommentDraft selector)
-                                , class config.toolbarButton
+                                , class config.cssConfig.toolbarButton
                                 ]
                                 [ Octicons.pencil { octiconsDefaultOptions | width = 14 } ]
                             , button
@@ -389,7 +402,7 @@ viewComment toMsg config state key commentIndex comment =
                                     "click"
                                     (Options True True)
                                     (Json.Decode.succeed <| DeleteComment key commentIndex)
-                                , class config.toolbarButton
+                                , class config.cssConfig.toolbarButton
                                 ]
                                 [ Octicons.trashcan { octiconsDefaultOptions | width = 12 } ]
                             ]
@@ -401,7 +414,7 @@ viewComment toMsg config state key commentIndex comment =
                         , sanitize = True
                         , smartypants = False
                         }
-                        [ class config.markdownBody ]
+                        [ class config.cssConfig.markdownBody ]
                         comment.markdown
                     ]
 
@@ -413,7 +426,7 @@ viewComment toMsg config state key commentIndex comment =
 -}
 
 
-newCommentEditor : Config cssClasses -> key -> CommentDraft -> Html (Msg key)
+newCommentEditor : Config cssClasses msg key -> key -> CommentDraft -> Html (Msg key)
 newCommentEditor config key =
     let
         selector : CommentDraftSelector key
@@ -422,13 +435,13 @@ newCommentEditor config key =
     in
         commentEditor
             config
-            ( ( "Discard Draft", Json.Decode.succeed <| Internal <| DeleteCommentDraft selector )
-            , ( "Comment", Json.Decode.succeed <| NewComment key )
+            ( ( translate config.translations "comment-editor-discard-draft", Json.Decode.succeed <| Internal <| DeleteCommentDraft selector )
+            , ( translate config.translations "comment-editor-comment", Json.Decode.succeed <| NewComment key )
             )
             selector
 
 
-updateCommentEditor : Config cssClasses -> key -> Int -> CommentDraft -> Html (Msg key)
+updateCommentEditor : Config cssClasses msg key -> key -> Int -> CommentDraft -> Html (Msg key)
 updateCommentEditor config key commentIndex =
     let
         selector : CommentDraftSelector key
@@ -437,13 +450,13 @@ updateCommentEditor config key commentIndex =
     in
         commentEditor
             config
-            ( ( "Cancel", Json.Decode.succeed <| Internal <| DeleteCommentDraft selector )
-            , ( "Update Comment", Json.Decode.succeed <| UpdateComment key commentIndex )
+            ( ( translate config.translations "comment-editor-cancel", Json.Decode.succeed <| Internal <| DeleteCommentDraft selector )
+            , ( translate config.translations "comment-editor-update-comment", Json.Decode.succeed <| UpdateComment key commentIndex )
             )
             selector
 
 
-viewToolbar : Config cssClasses -> Bool -> Html msg
+viewToolbar : Config cssClasses m k -> Bool -> Html msg
 viewToolbar config showMarkdownPreview =
     -- hide the toolbar when previewing
     div [] <|
@@ -451,51 +464,51 @@ viewToolbar config showMarkdownPreview =
             []
         else
             [ span
-                [ class config.toolbarButton
+                [ class config.cssConfig.toolbarButton
                 , Tooltips.classList [ ( ToolTipped, True ), ( ToolTippedSE, True ) ]
-                , Html.Attributes.attribute "aria-label" "text size"
+                , Html.Attributes.attribute "aria-label" <| translate config.translations "comment-editor-tooltip-text-size"
                 ]
                 [ Octicons.textSize { octiconsDefaultOptions | width = 18 } ]
             , span
-                [ class config.toolbarButton
+                [ class config.cssConfig.toolbarButton
                 , Tooltips.classList [ ( ToolTipped, True ), ( ToolTippedSE, True ) ]
-                , Html.Attributes.attribute "aria-label" "bold text"
+                , Html.Attributes.attribute "aria-label" <| translate config.translations "comment-editor-tooltip-bold-text"
                 ]
                 [ Octicons.bold { octiconsDefaultOptions | width = 10 } ]
             , span
-                [ class config.toolbarButton
+                [ class config.cssConfig.toolbarButton
                 , Tooltips.classList [ ( ToolTipped, True ), ( ToolTippedS, True ) ]
-                , Html.Attributes.attribute "aria-label" "italic text"
+                , Html.Attributes.attribute "aria-label" <| translate config.translations "comment-editor-tooltip-italic-text" 
                 ]
                 [ Octicons.italic { octiconsDefaultOptions | width = 6 } ]
             , span
-                [ class config.toolbarButton
+                [ class config.cssConfig.toolbarButton
                 , Tooltips.classList [ ( ToolTipped, True ), ( ToolTippedS, True ) ]
-                , Html.Attributes.attribute "aria-label" "code"
+                , Html.Attributes.attribute "aria-label" <| translate config.translations "comment-editor-tooltip-code"
                 ]
                 [ Octicons.code { octiconsDefaultOptions | width = 14 } ]
             , span
-                [ class config.toolbarButton
+                [ class config.cssConfig.toolbarButton
                 , Tooltips.classList [ ( ToolTipped, True ), ( ToolTippedS, True ) ]
-                , Html.Attributes.attribute "aria-label" "quote"
+                , Html.Attributes.attribute "aria-label" <| translate config.translations "comment-editor-tooltip-quote"
                 ]
                 [ Octicons.quote { octiconsDefaultOptions | width = 14 } ]
             , span
-                [ class config.toolbarButton
+                [ class config.cssConfig.toolbarButton
                 , Tooltips.classList [ ( ToolTipped, True ), ( ToolTippedS, True ) ]
-                , Html.Attributes.attribute "aria-label" "bulleted list"
+                , Html.Attributes.attribute "aria-label" <| translate config.translations "comment-editor-tooltip-bulleted-list"
                 ]
                 [ Octicons.listUnordered { octiconsDefaultOptions | width = 12 } ]
             , span
-                [ class config.toolbarButton
+                [ class config.cssConfig.toolbarButton
                 , Tooltips.classList [ ( ToolTipped, True ), ( ToolTippedS, True ) ]
-                , Html.Attributes.attribute "aria-label" "numbered list"
+                , Html.Attributes.attribute "aria-label" <| translate config.translations "comment-editor-tooltip-numbered-list"
                 ]
                 [ Octicons.listOrdered { octiconsDefaultOptions | width = 12 } ]
             , span
-                [ class config.toolbarButton
+                [ class config.cssConfig.toolbarButton
                 , Tooltips.classList [ ( ToolTipped, True ), ( ToolTippedS, True ) ]
-                , Html.Attributes.attribute "aria-label" "task list"
+                , Html.Attributes.attribute "aria-label" <| translate config.translations "comment-editor-tooltip-task-list"
                 ]
                 [ Octicons.tasklist { octiconsDefaultOptions | width = 16 } ]
             ]
@@ -513,7 +526,7 @@ for create and update. Actual button elements are used so we can use a server
 side fallback when the client does not run JS. TODO: fill in formaction on
 the buttons and write server code to accomplish this.
 -}
-commentEditor : Config cssClasses -> CommentActions key -> CommentDraftSelector key -> CommentDraft -> Html (Msg key)
+commentEditor : Config cssClasses msg key -> CommentActions key -> CommentDraftSelector key -> CommentDraft -> Html (Msg key)
 commentEditor config ( ( leftText, leftDecoder ), ( rightText, rightDecoder ) ) selector draft =
     let
         editorBody : Html (Msg key)
@@ -526,14 +539,14 @@ commentEditor config ( ( leftText, leftDecoder ), ( rightText, rightDecoder ) ) 
                     , sanitize = True
                     , smartypants = False
                     }
-                    [ class config.markdownBody ]
+                    [ class config.cssConfig.markdownBody ]
                     draft.markdown
             else
-                div [ class config.body ]
+                div [ class config.cssConfig.body ]
                     [ textarea
                         [ tabindex 1
-                        , placeholder "Leave a comment"
-                        , class config.textInput
+                        , placeholder <| translate config.translations "comment-editor-placeholder"
+                        , class config.cssConfig.textInput
                         , onInput (Internal << UpdateCommentDraft selector)
                         , onFocus (Internal <| CreateCommentDraft selector)
                         , Html.Attributes.value draft.markdown
@@ -541,15 +554,15 @@ commentEditor config ( ( leftText, leftDecoder ), ( rightText, rightDecoder ) ) 
                         []
                     ]
     in
-        form [ class config.editor ]
-            [ div [ class config.header ]
+        form [ class config.cssConfig.editor ]
+            [ div [ class config.cssConfig.header ]
                 -- the top toolbar element
                 [ viewToolbar config draft.showMarkdownPreview
-                , nav [ class config.horizontalTabNav ]
+                , nav [ class config.cssConfig.horizontalTabNav ]
                     [ button
                         [ Html.Attributes.classList
-                            [ ( toString config.horizontalTabSelected, not draft.showMarkdownPreview )
-                            , ( toString config.horizontalTab, True )
+                            [ ( toString config.cssConfig.horizontalTabSelected, not draft.showMarkdownPreview )
+                            , ( toString config.cssConfig.horizontalTab, True )
                             ]
                         , Html.Attributes.attribute "role" "tab"
                         , onWithOptions
@@ -557,11 +570,11 @@ commentEditor config ( ( leftText, leftDecoder ), ( rightText, rightDecoder ) ) 
                             (Options True True)
                             (Json.Decode.succeed <| Internal <| PreviewCommentDraft selector False)
                         ]
-                        [ text "Write" ]
+                        [ text <| translate config.translations "comment-editor-tab-write" ]
                     , button
                         [ Html.Attributes.classList
-                            [ ( toString config.horizontalTabSelected, draft.showMarkdownPreview )
-                            , ( toString config.horizontalTab, True )
+                            [ ( toString config.cssConfig.horizontalTabSelected, draft.showMarkdownPreview )
+                            , ( toString config.cssConfig.horizontalTab, True )
                             ]
                         , Html.Attributes.attribute "role" "tab"
                         , onWithOptions
@@ -569,19 +582,19 @@ commentEditor config ( ( leftText, leftDecoder ), ( rightText, rightDecoder ) ) 
                             (Options True True)
                             (Json.Decode.succeed <| Internal <| PreviewCommentDraft selector True)
                         ]
-                        [ text "Preview" ]
+                        [ text <| translate config.translations "comment-editor-tab-preview" ]
                     ]
                 ]
             , editorBody
-            , div [ class config.footer ] <|
+            , div [ class config.cssConfig.footer ] <|
                 [ span []
                     [ Octicons.markdown Octicons.defaultOptions
-                    , text " Markdown supported"
+                    , text <| translate config.translations "comment-editor-markdown-supported"
                     ]
                 , span []
                     [ button
                         [ tabindex 3
-                        , class config.button
+                        , class config.cssConfig.button
                         , onWithOptions
                             "click"
                             (Options True True)
@@ -590,7 +603,7 @@ commentEditor config ( ( leftText, leftDecoder ), ( rightText, rightDecoder ) ) 
                         [ text leftText ]
                     , button
                         [ tabindex 2
-                        , class config.button
+                        , class config.cssConfig.button
                         , onWithOptions
                             "click"
                             (Options True True)
