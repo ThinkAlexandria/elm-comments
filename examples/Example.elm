@@ -1,28 +1,21 @@
 module Example exposing (main)
 
-import Date exposing (Date)
-import Http
-import Html exposing (Html, div, text, ul, li, button, h3, node, p, hr)
-import Html.Attributes exposing (style)
-import Html.Events exposing (onClick)
 import Array exposing (Array)
-
-
--- third party
-
-import Css
-import I18Next exposing (Translations)
-
-
--- ours
-
+import Browser
 import Comments exposing (Msg(..))
 import Comments.Css
+import Css
+import Html exposing (Html, button, div, h3, hr, li, node, p, text, ul)
+import Html.Attributes exposing (style)
+import Html.Events exposing (onClick)
+import Http
+import I18Next exposing (Translations)
+import Time exposing (Posix)
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
+    Browser.document
         { init = init
         , view = view
         , update = update
@@ -30,13 +23,14 @@ main =
         }
 
 
-init : ( Model, Cmd Msg )
-init =
-    { feed = Array.fromList [ examplePost ]
-    , commentState = Comments.defaultState
-    , translations = I18Next.initialTranslations
-    }
-        ! [ I18Next.fetchTranslations TranslationsLoaded "en.json" ]
+init : () -> ( Model, Cmd Msg )
+init () =
+    ( { feed = Array.fromList [ examplePost ]
+      , commentState = Comments.defaultState
+      , translations = I18Next.initialTranslations
+      }
+    , I18Next.fetchTranslations TranslationsLoaded "en.json"
+    )
 
 
 
@@ -66,9 +60,9 @@ examplePost =
             [ { markdown = "# This is an example comment"
               , metadata =
                     { createdBy = "Steve"
-                    , createdTimestamp = Date.fromTime 1500000000
+                    , createdTimestamp = Time.millisToPosix 1500000000
                     , modifiedBy = "Steve"
-                    , modifiedTimestamp = Date.fromTime 1500000000
+                    , modifiedTimestamp = Time.millisToPosix 1500000000
                     , isDeleted = False
                     }
               }
@@ -80,9 +74,9 @@ type alias Comment =
     { markdown : String
     , metadata :
         { createdBy : String
-        , createdTimestamp : Date
+        , createdTimestamp : Posix
         , modifiedBy : String
-        , modifiedTimestamp : Date
+        , modifiedTimestamp : Posix
         , isDeleted : Bool
         }
     }
@@ -110,10 +104,14 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         TranslationsLoaded (Ok translations) ->
-            { model | translations = translations } ! []
+            ( { model | translations = translations }
+            , Cmd.none
+            )
 
         TranslationsLoaded (Err messag) ->
-            model ! []
+            ( model
+            , Cmd.none
+            )
 
         CommentsMsg commentsMsg ->
             case commentsMsg of
@@ -125,8 +123,9 @@ update msg model =
                                 internalMsg
                                 model.commentState
                     in
-                        { model | commentState = newCommentState }
-                            ! [ Cmd.map CommentsMsg commentCmd ]
+                    ( { model | commentState = newCommentState }
+                    , Cmd.map CommentsMsg commentCmd
+                    )
 
                 NewComment postIndex ->
                     case Array.get postIndex model.feed of
@@ -142,26 +141,29 @@ update msg model =
                                                 { markdown = Maybe.withDefault "" newComment
                                                 , metadata =
                                                     { createdBy = "Steve"
-                                                    , createdTimestamp = Date.fromTime 1500000000
+                                                    , createdTimestamp = Time.millisToPosix 1500000000
                                                     , modifiedBy = "Steve"
-                                                    , modifiedTimestamp = Date.fromTime 1500000000
+                                                    , modifiedTimestamp = Time.millisToPosix 1500000000
                                                     , isDeleted = False
                                                     }
                                                 }
                                                 post.comments
                                     }
                             in
-                                { model
-                                    | feed = Array.set postIndex newPost model.feed
-                                    , commentState =
-                                        Comments.removeNewDraft
-                                            postIndex
-                                            model.commentState
-                                }
-                                    ! []
+                            ( { model
+                                | feed = Array.set postIndex newPost model.feed
+                                , commentState =
+                                    Comments.removeNewDraft
+                                        postIndex
+                                        model.commentState
+                              }
+                            , Cmd.none
+                            )
 
                         Nothing ->
-                            model ! []
+                            ( model
+                            , Cmd.none
+                            )
 
                 UpdateComment postIndex commentIndex ->
                     case Array.get postIndex model.feed of
@@ -184,17 +186,22 @@ update msg model =
                                                         post.comments
                                             }
                                     in
-                                        { model
-                                            | feed = Array.set postIndex updatedPost model.feed
-                                            , commentState = Comments.removeEditDraft postIndex commentIndex model.commentState
-                                        }
-                                            ! []
+                                    ( { model
+                                        | feed = Array.set postIndex updatedPost model.feed
+                                        , commentState = Comments.removeEditDraft postIndex commentIndex model.commentState
+                                      }
+                                    , Cmd.none
+                                    )
 
                                 Nothing ->
-                                    model ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
 
                         Nothing ->
-                            model ! []
+                            ( model
+                            , Cmd.none
+                            )
 
                 DeleteComment postIndex commentIndex ->
                     case Array.get postIndex model.feed of
@@ -214,60 +221,69 @@ update msg model =
                                                         post.comments
                                             }
                                     in
-                                        { model
-                                            | feed = Array.set postIndex updatedPost model.feed
-                                            , commentState = Comments.removeEditDraft postIndex commentIndex model.commentState
-                                        }
-                                            ! []
+                                    ( { model
+                                        | feed = Array.set postIndex updatedPost model.feed
+                                        , commentState = Comments.removeEditDraft postIndex commentIndex model.commentState
+                                      }
+                                    , Cmd.none
+                                    )
 
                                 Nothing ->
-                                    model ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
 
                         Nothing ->
-                            model ! []
+                            ( model
+                            , Cmd.none
+                            )
 
         NoOp ->
-            model ! []
+            ( model
+            , Cmd.none
+            )
 
         NewPost ->
-            { model | feed = Array.push examplePost model.feed } ! []
+            ( { model | feed = Array.push examplePost model.feed }
+            , Cmd.none
+            )
 
 
 
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
-    div
-        [ style
-            [ ( "margin", "20px auto" )
-            , ( "padding", "20px" )
-            , ( "max-width", "1080px" )
+    { title = ""
+    , body =
+        [ div 
+            [ style "margin" "20px auto"
+            , style "padding" "20px"
+            , style "max-width" "1080px"
+            ]
+            [ node "style" [] [ text <| .css <| Css.compile [ Comments.Css.exampleStyleSheet ] ]
+            , h3 [] [ text "viewCommentList Demo" ]
+            , div []
+                [ p []
+                    [ text "You can edit comments on multiple posts simultaneously" ]
+                , button [ onClick NewPost ] [ text "New Post" ]
+                ]
+            , hr [] []
+            , ul [] <| Array.toList <| Array.indexedMap (viewPost model) model.feed
             ]
         ]
-        [ node "style" [] [ text <| .css <| Css.compile [ Comments.Css.exampleStyleSheet ] ]
-        , h3 [] [ text "viewCommentList Demo" ]
-        , div []
-            [ p []
-                [ text "You can edit comments on multiple posts simultaneously" ]
-            , button [ onClick NewPost ] [ text "New Post" ]
-            ]
-        , hr [] []
-        , ul [] <| Array.toList <| Array.indexedMap (viewPost model) model.feed
-        ]
+    }
 
 
 viewPost : Model -> Int -> Post -> Html Msg
-viewPost { translations, commentState} postIndex post =
+viewPost { translations, commentState } postIndex post =
     li
-        [ style
-            [ ( "max-width", "700px" )
-            , ( "background-color", "#eee" )
-            , ( "padding", "10px" )
-            , ( "margin", "10px 0px" )
-            , ( "border", "1px solid #ddd" )
-            ]
+        [ style "max-width" "700px"
+        , style "background-color" "#eee"
+        , style "padding" "10px"
+        , style "margin" "10px 0px"
+        , style "border" "1px solid #ddd"
         ]
     <|
         Comments.viewCommentList
@@ -277,6 +293,7 @@ viewPost { translations, commentState} postIndex post =
             }
             commentState
             postIndex
+            (\x -> Just x)
             (Array.toList post.comments)
 
 

@@ -1,7 +1,9 @@
 module Comments.Css exposing (CssConfig, defaultCssConfig, exampleStyleSheet, styleCommentEditor)
 
 {-|
+
 @docs CssConfig, defaultCssConfig, exampleStyleSheet, styleCommentEditor
+
 -}
 
 import Css exposing (..)
@@ -25,8 +27,7 @@ type CssClasses
     | HorizontalTabCommentEditorSelected
 
 
-{-|
--}
+{-| -}
 type alias CssConfig cssClasses =
     { editor : cssClasses
     , header : cssClasses
@@ -40,11 +41,11 @@ type alias CssConfig cssClasses =
     , footer : cssClasses
     , button : cssClasses
     , spacer : cssClasses
+    , toString : cssClasses -> String
     }
 
 
-{-|
--}
+{-| -}
 defaultCssConfig : CssConfig CssClasses
 defaultCssConfig =
     { editor = CommentEditor
@@ -59,6 +60,44 @@ defaultCssConfig =
     , footer = CommentEditorFooter
     , button = CommentEditorButton
     , spacer = CommentSpacer
+    , toString =
+        \c ->
+            case c of
+                CommentEditor ->
+                    "CommentEditor"
+
+                CommentEditorHeader ->
+                    "CommentEditorHeader"
+
+                CommentEditorToolbarButton ->
+                    "CommentEditorToolbarButton"
+
+                CommentEditorBody ->
+                    "CommentEditorBody"
+
+                MarkdownBody ->
+                    "MarkdownBody"
+
+                CommentTextInput ->
+                    "CommentTextInput"
+
+                CommentEditorFooter ->
+                    "CommentEditorFooter"
+
+                CommentEditorButton ->
+                    "CommentEditorButton"
+
+                CommentSpacer ->
+                    "CommentSpacer"
+
+                HorizontalTabNav ->
+                    "HorizontalTabNav"
+
+                HorizontalTab ->
+                    "HorizontalTab"
+
+                HorizontalTabCommentEditorSelected ->
+                    "HorizontalTabCommentEditorSelected"
     }
 
 
@@ -81,23 +120,28 @@ defaultStyleConfig =
     }
 
 
-{-|
--}
+{-| -}
 styleCommentEditor : StyleConfig -> CssConfig cssClasses -> List Snippet
 styleCommentEditor styleConfig cssConfig =
+    let
+        class =
+            cssConfig.toString >> Css.class
+    in
     [ class cssConfig.editor
         [ border3 (px styleConfig.commonBorderThickness) solid styleConfig.borderColor
         , backgroundColor styleConfig.editorBackground
         , margin (px 0)
         , borderRadius (px styleConfig.commonRadius)
-          -- box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(58,171,240,0.6);
+
+        -- box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(58,171,240,0.6);
         ]
     , class cssConfig.button
         [ marginLeft (px 5)
         , backgroundColor styleConfig.editorBackground
         , border3 (px styleConfig.commonBorderThickness) solid styleConfig.borderColor
         , padding2 (px 8) (px 12)
-          --, shadowLevelTwo
+
+        --, shadowLevelTwo
         , borderRadius (px styleConfig.commonRadius)
         , hover
             [ backgroundColor styleConfig.buttonHoverColor
@@ -128,10 +172,11 @@ styleCommentEditor styleConfig cssConfig =
         ]
     , class cssConfig.markdownBody
         [ borderTop3 (px styleConfig.commonBorderThickness) solid styleConfig.borderColor
-          {- Match the margin of CommentInput text but reduce the padding so
-             the rendered text looks a little bit bigger than the draft inside
-             the text area, a little perceptual cue
-          -}
+
+        {- Match the margin of CommentInput text but reduce the padding so
+           the rendered text looks a little bit bigger than the draft inside
+           the text area, a little perceptual cue
+        -}
         , margin2 (px 0) (px 10)
         , padding2 (px 10) (px 5)
         , children
@@ -156,14 +201,16 @@ styleCommentEditor styleConfig cssConfig =
         , resize vertical
         , boxSizing borderBox
         ]
-      {- Pushes the helptext to left and action buttons to the right -}
+
+    {- Pushes the helptext to left and action buttons to the right -}
     , class cssConfig.footer
         [ displayFlex
         , justifyContent spaceBetween
         , margin (px 10)
         ]
-      {- modify the alignment of the Markdown icon -}
-    , class "octiconMarkdown"
+
+    {- modify the alignment of the Markdown icon -}
+    , Css.class "octiconMarkdown"
         [ verticalAlign middle ]
     , class cssConfig.spacer
         [ height (px 30)
@@ -194,30 +241,35 @@ styleHorizontalTabNav styleConfig cssConfig =
        the CommentEditorHeader so that the background of the HorizontalTabSelected
        tab appears to merge with the comment area background below
     -}
+    let
+        class =
+            cssConfig.toString >> Css.class
+    in
     [ class cssConfig.horizontalTabNav
         [ marginBottom (px (2 * -styleConfig.commonBorderThickness))
         , borderColor inherit
         ]
-      {- Each different component will need to implement a selected class that
-         matches the background color of the containing widget
-      -}
+
+    {- Each different component will need to implement a selected class that
+       matches the background color of the containing widget
+    -}
     , class cssConfig.horizontalTab
         [ border3 (px styleConfig.commonBorderThickness) solid transparent
         , backgroundColor transparent
         , padding2 (px 8) (px 12)
         , borderTopLeftRadius (px styleConfig.commonRadius)
         , borderTopRightRadius (px styleConfig.commonRadius)
-          {- Prevent the tab from getting too small when there are only 3
-             letters such as "All"
-          -}
+
+        {- Prevent the tab from getting too small when there are only 3
+           letters such as "All"
+        -}
         , minWidth (Css.em 4)
         , color inherit
         ]
     ]
 
 
-{-|
--}
+{-| -}
 exampleStyleSheet : Css.Stylesheet
 exampleStyleSheet =
     stylesheet <|
